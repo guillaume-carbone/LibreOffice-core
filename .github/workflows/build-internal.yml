@@ -22,7 +22,7 @@ jobs:
         with:
           mode: start
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          ec2-image-id: ami-080fa3659564ffbb1
+          ec2-image-id: ami-0314c062c813a4aa0
           ec2-instance-type: t3.large
           subnet-id: subnet-027c65f285842519c
           security-group-id: sg-0ffdee926e8fcecc2
@@ -33,6 +33,9 @@ jobs:
               {"Key": "ST", "Value": "Libreoffice-Builder"},
               {"Key": "GitHubRepository", "Value": "${{ github.repository }}"}
             ]
+          pre-runner-script: |
+            sudo yum update -y && \ 
+            sudo yum install git
   do-the-job:
     name: Do the job on the runner
     needs: start-runner # required to start the main job when the runner is ready
