@@ -5,7 +5,7 @@ on: workflow_dispatch
 jobs:
   start-runner:
     name: Start self-hoster EC2 runner
-    runs-on: ubunut-last
+    runs-on: ubuntu-last
     outputs:
       label: ${{ steps.start-ec2-runner.outputs.label }}
       ec2-instance-id: ${{ steps.start-ec2-runner.outputs.ec2-instance-id }}
@@ -22,14 +22,15 @@ jobs:
         with:
           mode: start
           github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          ec2-image-id: ami-123
-          ec2-instance-type: t3.nano
-          subnet-id: subnet-123
-          security-group-id: sg-123
-          iam-role-name: my-role-name # optional, requires additional permissions
+          ec2-image-id: ami-080fa3659564ffbb1
+          ec2-instance-type: t3.large
+          subnet-id: subnet-027c65f285842519c
+          security-group-id: sg-0ffdee926e8fcecc2
+          #iam-role-name: my-role-name # optional, requires additional permissions
           aws-resource-tags: > # optional, requires additional permissions
             [
               {"Key": "Name", "Value": "ec2-github-runner"},
+              {"Key": "ST", "Value": "Libreoffice-Builder"},
               {"Key": "GitHubRepository", "Value": "${{ github.repository }}"}
             ]
   do-the-job:
