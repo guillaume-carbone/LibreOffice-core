@@ -42,6 +42,10 @@ jobs:
     steps:
       - name: Start Build
         run: echo 'Start LibreOffice Build'
+      - name: Install tools
+        run: |
+          apt-get install -y jq python python-pip
+          pip install awscli
       - name: Expand root volume
         run: |
           TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
