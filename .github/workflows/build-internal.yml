@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v2
       - run: |
           su - admin -c 'pwd'
-          su - admin -c whoami'
+          su - admin -c 'whoami'
       - name: Build
         run: |
           su - admin -c './autogen.sh --with-package-format=deb --enable-release-build --enable-mergelibs --enable-epm \
