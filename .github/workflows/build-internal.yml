@@ -26,7 +26,7 @@ jobs:
           ec2-instance-type: t3.large
           subnet-id: subnet-027c65f285842519c
           security-group-id: sg-0ffdee926e8fcecc2
-          #iam-role-name: my-role-name # optional, requires additional permissions
+          iam-role-name: EC2-SSM # optional, requires additional permissions
           aws-resource-tags: > # optional, requires additional permissions
             [
               {"Key": "Name", "Value": "ec2-github-runner"},
