@@ -1,0 +1,139 @@
+name : Build Deb LibreOffice arm64 for CarboneIO document generator
+
+on: workflow_dispatch
+
+jobs:
+  start-runner:
+    name: Start self-hoster EC2 runner
+    runs-on: ubuntu-latest
+    outputs:
+      label: ${{ steps.start-ec2-runner.outputs.label }}
+      ec2-instance-id: ${{ steps.start-ec2-runner.outputs.ec2-instance-id }}
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Start EC2 runner
+        id: start-ec2-runner
+        uses: machulav/ec2-github-runner@v2
+        with:
+          mode: start
+          github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          ec2-image-id: ami-0fbe166006b1bd134
+          ec2-instance-type: t4g.2xlarge
+          subnet-id: subnet-027c65f285842519c
+          security-group-id: sg-0ffdee926e8fcecc2
+          iam-role-name: EC2-SSM # optional, requires additional permissions
+          aws-resource-tags: > # optional, requires additional permissions
+            [
+              {"Key": "Name", "Value": "ec2-github-runner"},
+              {"Key": "ST", "Value": "Libreoffice-Builder"},
+              {"Key": "GitHubRepository", "Value": "${{ github.repository }}"}
+            ]
+          pre-runner-script: |
+            apt-get update
+  build-libreoffice-arm:
+    name: Build Libreoffice
+    needs: start-runner # required to start the main job when the runner is ready
+    runs-on: ${{ needs.start-runner.outputs.label }} # run the job on the newly created runner
+    steps:
+      - name: Start Build
+        run: echo 'Start LibreOffice Build'
+      - name: Install tools
+        run: |
+          apt-get install -y jq 
+      - name: Expand root volume
+        run: |
+          TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+          INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/instance-id)
+          VOLUME_ID=$(aws ec2 describe-volumes --filters Name=attachment.instance-id,Values=$INSTANCE_ID | jq -r .Volumes[0].Attachments[0].VolumeId)
+          echo $INSTANCE_ID
+          echo $VOLUME_ID
+          aws ec2 modify-volume --volume-id $VOLUME_ID --size 64
+          sleep 15  # let it update
+          growpart /dev/xvda 1
+          lsblk
+          resize2fs  /dev/xvda1
+          df -hT
+      - name: Install dependencies
+        run: |
+          apt-get install -y git build-essential zip ccache junit4 libkrb5-dev nasm graphviz python3 python3-dev \
+            qtbase5-dev libkf5coreaddons-dev libkf5i18n-dev libkf5config-dev libkf5windowsystem-dev libkf5kio-dev \
+            libqt5x11extras5-dev autoconf libcups2-dev libfontconfig1-dev gperf openjdk-17-jdk doxygen libxslt1-dev \
+            xsltproc libxml2-utils libxrandr-dev libx11-dev bison flex libgtk-3-dev ant ant-optional libnss3-dev \
+            libavahi-client-dev libxt-dev
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Change owner
+        run: chown -R admin:admin /actions-runner/_work/LibreOffice-core
+      - name: Build
+        run: |
+          su - admin -c 'cd /actions-runner/_work/LibreOffice-core/LibreOffice-core && ./autogen.sh \
+            --with-package-format=deb --enable-release-build --enable-mergelibs --enable-epm \
+            --enable-lto --enable-python=internal --enable-gen --enable-pch=full --without-system-headers \
+            --without-system-libs --without-help --without-myspell-dicts --without-java --without-doxygen \
+            --without-helppack-integration --without-junit --without-system-poppler --without-system-openssl \
+            --without-system-libpng --without-system-jpeg --without-system-jars --without-export-validation \
+            --without-krb5 --without-webdav --without-x  --disable-gtk3 --disable-gtk4 --disable-skia \
+            --disable-cairo-canvas --without-system-expat --without-system-libxml --without-system-xmlsec \
+            --without-system-libeot --without-system-librevenge --without-system-libepubgen --without-system-libwpd \
+            --without-system-libwpg --without-system-libwps --without-system-libvisio --without-system-libcdr \
+            --without-system-libmspub --without-system-libmwaw --without-system-libetonyek --without-system-libfreehand \
+            --without-system-libebook --without-system-libabw --without-system-libpagemaker --without-system-libqxp \
+            --without-system-libzmf --without-system-libstaroffice --without-system-libatomic_ops \
+            --without-system-libexttextcat --without-system-libnumbertext --without-system-libtiff \
+            --without-system-libwebp --with-system-dicts --with-system-zlib --with-linker-hash-style=both \
+            --with-fonts --with-external-thes-dir=/usr/share/mythes --with-external-hyph-dir=/usr/share/hyphen \
+            --with-external-dict-dir=/usr/share/hunspell --with-galleries=no --with-theme=breeze \
+            --with-vendor=Carbone.io --disable-community-flavor --disable-avahi --disable-dbus \
+            --disable-extension-integration --disable-extension-update --disable-odk --disable-gstreamer-1-0 \
+            --disable-evolution2 --disable-scripting-beanshell --disable-scripting-javascript --disable-ext-wiki-publisher \
+            --disable-dconf --disable-cups --disable-firebird-sdbc --disable-postgresql-sdbc --disable-mariadb-sdbc \
+            --disable-report-builder --disable-ldap --disable-librelogo --disable-libcmis --disable-cve-tests \
+            --disable-dbgutil --disable-sdremote --disable-sdremote-bluetooth --disable-online-update --disable-lpsolve \
+            --disable-lotuswordpro --disable-gui --disable-zxing --without-system-freetype --without-system-nss'
+            su - admin -c 'cd /actions-runner/_work/LibreOffice-core/LibreOffice-core &&CC=gcc-12 CXX=g++-12 make'
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload Release
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: /actions-runner/_work/LibreOffice-core/LibreOffice-core/workdir/installation/LibreOffice/deb/install/LibreOffice_*_Linux_aarch64_deb_download/DEBS/*.tar.gz
+          asset_name: LibreOffice_${{ github.ref }}_Linux_aarch64_deb.tar.gz
+          asset_content_type: application/zip
+  stop-runner:
+    name: Stop self-hosted EC2 runner
+    needs:
+      - start-runner # required to get output from the start-runner job
+      - build-libreoffice-arm # required to wait when the main job is doen
+    runs-on: ubuntu-latest
+    if: ${{ always() }} # required to stop the runner even if the error happened in the previous jobs
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Stop EC2 runner
+        uses: machulav/ec2-github-runner@v2
+        with:
+          mode: stop
+          github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          label: ${{ needs.start-runner.outputs.label }}
+          ec2-instance-id: ${{ needs.start-runner.outputs.ec2-instance-id }}
