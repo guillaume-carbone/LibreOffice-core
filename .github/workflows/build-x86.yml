@@ -1,4 +1,4 @@
-name : Build LibreOffice for CarboneIO document generator
+name : Build Deb LibreOffice x86 for CarboneIO document generator
 
 on: workflow_dispatch
 
@@ -11,7 +11,7 @@ jobs:
       ec2-instance-id: ${{ steps.start-ec2-runner.outputs.ec2-instance-id }}
     steps:
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -23,7 +23,7 @@ jobs:
           mode: start
           github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
           ec2-image-id: ami-0314c062c813a4aa0
-          ec2-instance-type: t3.large
+          ec2-instance-type: t3.xlarge
           subnet-id: subnet-027c65f285842519c
           security-group-id: sg-0ffdee926e8fcecc2
           iam-role-name: EC2-SSM # optional, requires additional permissions
@@ -35,8 +35,8 @@ jobs:
             ]
           pre-runner-script: |
             apt-get update
-  do-the-job:
-    name: Do the job on the runner
+  build-libreoffice-x86:
+    name: Build Libreoffice
     needs: start-runner # required to start the main job when the runner is ready
     runs-on: ${{ needs.start-runner.outputs.label }} # run the job on the newly created runner
     steps:
@@ -66,7 +66,7 @@ jobs:
             xsltproc libxml2-utils libxrandr-dev libx11-dev bison flex libgtk-3-dev ant ant-optional libnss3-dev \
             libavahi-client-dev libxt-dev
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Change owner
         run: chown -R admin:admin /actions-runner/_work/LibreOffice-core
       - name: Build
@@ -100,12 +100,12 @@ jobs:
     name: Stop self-hosted EC2 runner
     needs:
       - start-runner # required to get output from the start-runner job
-      - do-the-job # required to wait when the main job is doen
+      - build-libreoffice-x86 # required to wait when the main job is doen
     runs-on: ubuntu-latest
     if: ${{ always() }} # required to stop the runner even if the error happened in the previous jobs
     steps:
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
