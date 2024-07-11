@@ -51,6 +51,8 @@ jobs:
             libavahi-client-dev libxt-dev
       - name: Checkout Code
         uses: actions/checkout@v2
+      - name: Change owner
+        run: chown -R admin:admin /actions-runner/_work/LibreOffice-core
       - name: Build
         run: |
           su - admin -c 'cd /actions-runner/_work/LibreOffice-core/LibreOffice-core && ./autogen.sh \
