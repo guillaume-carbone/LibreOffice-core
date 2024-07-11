@@ -38,8 +38,7 @@ jobs:
             cd /tmp/ssm \
             wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb \
             sudo dpkg -i amazon-ssm-agent.deb \
-            sudo systemctl enable amazon-ssm-agent \
-            sudo apt-get install -y git build-essential zip ccache junit4 libkrb5-dev nasm graphviz python3 python3-dev qtbase5-dev libkf5coreaddons-dev libkf5i18n-dev libkf5config-dev libkf5windowsystem-dev libkf5kio-dev libqt5x11extras5-dev autoconf libcups2-dev libfontconfig1-dev gperf openjdk-17-jdk doxygen libxslt1-dev xsltproc libxml2-utils libxrandr-dev libx11-dev bison flex libgtk-3-dev ant ant-optional libnss3-dev libavahi-client-dev libxt-dev
+            sudo systemctl enable amazon-ssm-agent
   do-the-job:
     name: Do the job on the runner
     needs: start-runner # required to start the main job when the runner is ready
@@ -47,6 +46,8 @@ jobs:
     steps:
       - name: Start Build
         run: echo 'Start LibreOffice Build'
+      - name: Install dependencies
+        run: sudo apt-get install -y git build-essential zip ccache junit4 libkrb5-dev nasm graphviz python3 python3-dev qtbase5-dev libkf5coreaddons-dev libkf5i18n-dev libkf5config-dev libkf5windowsystem-dev libkf5kio-dev libqt5x11extras5-dev autoconf libcups2-dev libfontconfig1-dev gperf openjdk-17-jdk doxygen libxslt1-dev xsltproc libxml2-utils libxrandr-dev libx11-dev bison flex libgtk-3-dev ant ant-optional libnss3-dev libavahi-client-dev libxt-dev
       - name: Checkout Code
         uses: actions/checkout@v2
       - name: Build
