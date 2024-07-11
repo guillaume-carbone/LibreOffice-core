@@ -51,11 +51,12 @@ jobs:
             libavahi-client-dev libxt-dev
       - name: Checkout Code
         uses: actions/checkout@v2
-      - run: ls -lrt
+      - run: |
+          su - admin -c 'pwd'
+          su - admin -c whoami'
       - name: Build
         run: |
-          su - admin
-          ./autogen.sh --with-package-format=deb --enable-release-build --enable-mergelibs --enable-epm \
+          su - admin -c './autogen.sh --with-package-format=deb --enable-release-build --enable-mergelibs --enable-epm \
             --enable-lto --enable-python=internal --enable-gen --enable-pch=full --without-system-headers \
             --without-system-libs --without-help --without-myspell-dicts --without-java --without-doxygen \
             --without-helppack-integration --without-junit --without-system-poppler --without-system-openssl \
@@ -77,8 +78,8 @@ jobs:
             --disable-dconf --disable-cups --disable-firebird-sdbc --disable-postgresql-sdbc --disable-mariadb-sdbc \
             --disable-report-builder --disable-ldap --disable-librelogo --disable-libcmis --disable-cve-tests \
             --disable-dbgutil --disable-sdremote --disable-sdremote-bluetooth --disable-online-update --disable-lpsolve \
-            --disable-lotuswordpro --disable-gui --disable-zxing --without-system-freetype --without-system-nss
-          CC=gcc-12 CXX=g++-12 make
+            --disable-lotuswordpro --disable-gui --disable-zxing --without-system-freetype --without-system-nss'
+            su - admin -c 'CC=gcc-12 CXX=g++-12 make'
   stop-runner:
     name: Stop self-hosted EC2 runner
     needs:
@@ -97,6 +98,6 @@ jobs:
         uses: machulav/ec2-github-runner@v2
         with:
           mode: stop
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
           label: ${{ needs.start-runner.outputs.label }}
           ec2-instance-id: ${{ needs.start-runner.outputs.ec2-instance-id }}
