@@ -22,7 +22,7 @@ jobs:
         with:
           mode: start
           github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          ec2-image-id: ami-0314c062c813a4aa0
+          ec2-image-id: ami-080fa3659564ffbb1 #ami-0314c062c813a4aa0
           ec2-instance-type: t3.large
           subnet-id: subnet-027c65f285842519c
           security-group-id: sg-0ffdee926e8fcecc2
@@ -33,12 +33,12 @@ jobs:
               {"Key": "ST", "Value": "Libreoffice-Builder"},
               {"Key": "GitHubRepository", "Value": "${{ github.repository }}"}
             ]
-          pre-runner-script: |
-            mkdir /tmp/ssm
-            cd /tmp/ssm
-            wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
-            sudo dpkg -i amazon-ssm-agent.deb \
-            sudo systemctl enable amazon-ssm-agent
+          #pre-runner-script: |
+          #  mkdir /tmp/ssm
+          #  cd /tmp/ssm
+          #  wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
+          #  sudo dpkg -i amazon-ssm-agent.deb \
+          #  sudo systemctl enable amazon-ssm-agent
   do-the-job:
     name: Do the job on the runner
     needs: start-runner # required to start the main job when the runner is ready
