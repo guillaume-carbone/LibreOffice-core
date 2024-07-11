@@ -46,6 +46,8 @@ jobs:
     steps:
       - name: Start Build
         run: echo 'Start LibreOffice Build'
+      - run: ls -l /home
+      - run: cat /etc/passwd
       - name: Install dependencies
         run: |
           apt-get update
