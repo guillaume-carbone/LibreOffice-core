@@ -51,13 +51,10 @@ jobs:
             libavahi-client-dev libxt-dev
       - name: Checkout Code
         uses: actions/checkout@v2
-      - run: pwd
-      - run: |
-          su - admin -c 'pwd'
-          su - admin -c 'whoami'
       - name: Build
         run: |
-          su - admin -c './autogen.sh --with-package-format=deb --enable-release-build --enable-mergelibs --enable-epm \
+          su - admin -c 'cd /actions-runner/_work/LibreOffice-core/LibreOffice-core && ./autogen.sh \
+            --with-package-format=deb --enable-release-build --enable-mergelibs --enable-epm \
             --enable-lto --enable-python=internal --enable-gen --enable-pch=full --without-system-headers \
             --without-system-libs --without-help --without-myspell-dicts --without-java --without-doxygen \
             --without-helppack-integration --without-junit --without-system-poppler --without-system-openssl \
@@ -80,7 +77,7 @@ jobs:
             --disable-report-builder --disable-ldap --disable-librelogo --disable-libcmis --disable-cve-tests \
             --disable-dbgutil --disable-sdremote --disable-sdremote-bluetooth --disable-online-update --disable-lpsolve \
             --disable-lotuswordpro --disable-gui --disable-zxing --without-system-freetype --without-system-nss'
-            su - admin -c 'CC=gcc-12 CXX=g++-12 make'
+            su - admin -c 'cd /actions-runner/_work/LibreOffice-core/LibreOffice-core &&CC=gcc-12 CXX=g++-12 make'
   stop-runner:
     name: Stop self-hosted EC2 runner
     needs:
