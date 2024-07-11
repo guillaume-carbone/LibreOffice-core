@@ -52,7 +52,7 @@ jobs:
           VOLUME_ID=$(aws ec2 describe-volumes --filters Name=attachment.instance-id,Values=$INSTANCE_ID | jq -r .Volumes[0].Attachments[0].VolumeId)
           echo $INSTANCE_ID
           echo $VOLUME_ID
-          aws ec2 modify-volume --volume-id $VOLUME_ID --size 32
+          aws ec2 modify-volume --volume-id $VOLUME_ID --size 64
           sleep 15  # let it update
           growpart /dev/xvda 1
           lsblk
