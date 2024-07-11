@@ -34,8 +34,11 @@ jobs:
               {"Key": "GitHubRepository", "Value": "${{ github.repository }}"}
             ]
           pre-runner-script: |
-            sudo yum update -y && \ 
-            sudo yum install git
+            mkdir /tmp/ssm
+            cd /tmp/ssm
+            wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
+            sudo dpkg -i amazon-ssm-agent.deb \
+            sudo systemctl enable amazon-ssm-agent
   do-the-job:
     name: Do the job on the runner
     needs: start-runner # required to start the main job when the runner is ready
