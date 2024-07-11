@@ -26,7 +26,7 @@ jobs:
           ec2-instance-type: t3.large
           subnet-id: subnet-027c65f285842519c
           security-group-id: sg-0ffdee926e8fcecc2
-          #iam-role-name: EC2-SSM # optional, requires additional permissions
+          iam-role-name: EC2-SSM # optional, requires additional permissions
           aws-resource-tags: > # optional, requires additional permissions
             [
               {"Key": "Name", "Value": "ec2-github-runner"},
@@ -44,8 +44,7 @@ jobs:
         run: echo 'Start LibreOffice Build'
       - name: Install tools
         run: |
-          apt-get install -y jq python python-pip
-          pip install awscli
+          apt-get install -y jq 
       - name: Expand root volume
         run: |
           TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
@@ -55,9 +54,9 @@ jobs:
           echo $VOLUME_ID
           aws ec2 modify-volume --volume-id $VOLUME_ID --size 32
           sleep 15  # let it update
-          growpart /dev/nvme0n1 1
+          growpart /dev/xvda 1
           lsblk
-          xfs_growfs -d /
+          resize2fs  /dev/xvda1
           df -hT
       - name: Install dependencies
         run: |
