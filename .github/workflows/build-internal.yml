@@ -42,12 +42,6 @@ jobs:
     steps:
       - name: Start Build
         run: echo 'Start LibreOffice Build'
-      - run: ls -l /home
-      - run: cat /etc/passwd
-      - run: pwd
-      - run: whoami
-      - run: sudo su - admin
-      - run: whoami
       - name: Install dependencies
         run: |
           apt-get install -y git build-essential zip ccache junit4 libkrb5-dev nasm graphviz python3 python3-dev \
@@ -60,6 +54,7 @@ jobs:
       - run: ls -lrt
       - name: Build
         run: |
+          su - admin
           ./autogen.sh --with-package-format=deb --enable-release-build --enable-mergelibs --enable-epm \
             --enable-lto --enable-python=internal --enable-gen --enable-pch=full --without-system-headers \
             --without-system-libs --without-help --without-myspell-dicts --without-java --without-doxygen \
