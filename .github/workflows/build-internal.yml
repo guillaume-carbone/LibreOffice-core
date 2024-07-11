@@ -51,6 +51,7 @@ jobs:
             libavahi-client-dev libxt-dev
       - name: Checkout Code
         uses: actions/checkout@v2
+      - run: pwd
       - run: |
           su - admin -c 'pwd'
           su - admin -c 'whoami'
