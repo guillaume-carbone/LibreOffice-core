@@ -101,7 +101,7 @@ jobs:
             --disable-report-builder --disable-ldap --disable-librelogo --disable-libcmis --disable-cve-tests \
             --disable-dbgutil --disable-sdremote --disable-sdremote-bluetooth --disable-online-update --disable-lpsolve \
             --disable-lotuswordpro --disable-gui --disable-zxing --without-system-freetype --without-system-nss'
-            su - admin -c 'cd /actions-runner/_work/LibreOffice-core/LibreOffice-core && && mkdir -p workdir/installation/LibreOffice/deb/install/LibreOffice_24.2.3.2_Linux_x86-64_deb_download && touch workdir/installation/LibreOffice/deb/install/LibreOffice_24.2.3.2_Linux_x86-64_deb_download/LibreOffice_24.2.3.2_Linux_x86-64_deb.tar.gz' 
+            su - admin -c 'cd /actions-runner/_work/LibreOffice-core/LibreOffice-core && mkdir -p workdir/installation/LibreOffice/deb/install/LibreOffice_24.2.3.2_Linux_x86-64_deb_download && touch workdir/installation/LibreOffice/deb/install/LibreOffice_24.2.3.2_Linux_x86-64_deb_download/LibreOffice_24.2.3.2_Linux_x86-64_deb.tar.gz' 
       #CC=gcc-12 CXX=g++-12 make'
       - name: Create Release
         id: create_release
