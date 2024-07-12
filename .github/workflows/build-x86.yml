@@ -1,6 +1,12 @@
 name : Build Deb LibreOffice x86 for CarboneIO document generator
 
-on: workflow_dispatch
+on: 
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: Version number
+        required: true
 
 jobs:
   start-runner:
@@ -102,10 +108,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ inputs.version }}
+          release_name: Release ${{ inputs.version }}
           draft: false
           prerelease: false
+      - name: Get Name of Artifact
+        run: |
+          ARTIFACT_PATHNAME=$(ls workdir/installation/LibreOffice/deb/install/LibreOffice_*_Linux_x86-64_deb_download/DEBS/*.tar.gz | head -n 1)
+          ARTIFACT_NAME=$(basename $ARTIFACT_PATHNAME)
+          echo ::set-env name=ARTIFACT_NAME::${ARTIFACT_NAME}
+          echo ::set-env name=ARTIFACT_PATHNAME::${ARTIFACT_PATHNAME}
       - name: Upload Release
         id: upload-release-asset 
         uses: actions/upload-release-asset@v1
@@ -113,8 +125,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: /actions-runner/_work/LibreOffice-core/LibreOffice-core/workdir/installation/LibreOffice/deb/install/LibreOffice_*_Linux_x86-64_deb_download/DEBS/*.tar.gz
-          asset_name: LibreOffice_${{ github.ref }}_Linux_x86-64_deb.tar.gz
+          asset_path: ${{ env.ARTIFACT_PATHNAME }}
+          asset_name: ${{ env.ARTIFACT_NAME }}
           asset_content_type: application/zip
   stop-runner:
     name: Stop self-hosted EC2 runner
